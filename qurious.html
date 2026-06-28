@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qurious — Validus Knowledge Base</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F4F6FA;--surface:#FFFFFF;--surface2:#F0F4FA;--border:rgba(0,0,0,0.09);
+  --text:#1A2233;--text2:#4A5568;--text3:#8492A6;
+  --accent:#1A6BC8;--accent-bg:rgba(26,107,200,0.08);
+  --teal:#0D8A65;--teal-bg:rgba(13,138,101,0.08);
+  --gold:#C07800;--gold-bg:rgba(192,120,0,0.08);
+  --red:#B93030;--red-bg:rgba(185,48,48,0.08);
+  --shadow:0 2px 16px rgba(0,0,0,0.08);--radius:12px;
+  --font:'Inter',system-ui,sans-serif;
+  --sidebar-w:280px;
+}
+[data-theme=dark]{
+  --bg:#0F1117;--surface:#1A1D27;--surface2:#242736;--border:rgba(255,255,255,0.08);
+  --text:#E8EBF0;--text2:#9AA5B4;--text3:#6B7A8D;--shadow:0 2px 20px rgba(0,0,0,0.4);
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex}
+
+/* ── LOGIN ── */
+#screen-login{align-items:center;justify-content:center;padding:24px;flex-direction:column}
+.login-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:20px;
+  padding:48px 44px;width:100%;max-width:420px;box-shadow:var(--shadow);text-align:center
+}
+.q-logo{
+  width:64px;height:64px;border-radius:18px;
+  background:linear-gradient(135deg,#1A6BC8,#C07800);
+  display:flex;align-items:center;justify-content:center;
+  font-size:30px;font-weight:900;color:#fff;margin:0 auto 20px;font-style:italic
+}
+.login-title{font-size:26px;font-weight:800;margin-bottom:4px}
+.login-sub{font-size:13.5px;color:var(--text3);margin-bottom:32px;line-height:1.5}
+.inp-group{margin-bottom:14px;text-align:left}
+.inp-group label{display:block;font-size:11.5px;font-weight:600;color:var(--text2);margin-bottom:5px;letter-spacing:.4px;text-transform:uppercase}
+.inp-group input,.inp-group select{
+  width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:14.5px;background:var(--surface);color:var(--text);outline:none;transition:border-color .15s
+}
+.inp-group input:focus{border-color:var(--accent)}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:42px}
+.pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text3);font-size:15px}
+.strength-bar{height:3px;background:var(--border);border-radius:2px;margin-top:5px;overflow:hidden}
+.strength-fill{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0%}
+.strength-lbl{font-size:11px;color:var(--text3);margin-top:3px}
+.btn-primary{
+  width:100%;padding:12px;border:none;border-radius:10px;font-size:15px;font-weight:600;
+  cursor:pointer;background:linear-gradient(135deg,#1A6BC8,#0D5FA0);color:#fff;
+  transition:all .15s;margin-top:6px
+}
+.btn-primary:hover{filter:brightness(1.1)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{
+  width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:14px;background:transparent;color:var(--text2);cursor:pointer;margin-top:8px;transition:all .15s
+}
+.btn-ghost:hover{background:var(--surface2)}
+.link-btn{background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;text-decoration:underline;padding:0}
+.err{color:var(--red);font-size:13px;margin-top:8px;display:none;text-align:left}
+.suc{color:var(--teal);font-size:13px;margin-top:8px;display:none;text-align:left}
+
+/* Force change */
+.force-card{
+  background:var(--surface);border:2px solid var(--gold);border-radius:20px;
+  padding:40px 44px;width:100%;max-width:420px;box-shadow:var(--shadow);text-align:center
+}
+
+/* ── APP LAYOUT ── */
+#screen-app{flex-direction:column}
+.topbar{
+  display:flex;align-items:center;gap:14px;padding:0 20px;height:56px;
+  background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;flex-shrink:0
+}
+.topbar-brand{display:flex;align-items:center;gap:10px;cursor:pointer}
+.topbar-brand-icon{
+  width:30px;height:30px;border-radius:8px;
+  background:linear-gradient(135deg,#1A6BC8,#C07800);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:900;color:#fff;font-style:italic
+}
+.topbar-brand-name{font-size:16px;font-weight:800;color:var(--text)}
+.topbar-brand-sub{font-size:10.5px;color:var(--text3)}
+.topbar-search{
+  flex:1;max-width:420px;
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface2);border:1.5px solid var(--border);border-radius:99px;
+  padding:0 14px;height:36px
+}
+.topbar-search input{
+  flex:1;border:none;background:transparent;font-size:14px;color:var(--text);outline:none
+}
+.topbar-search input::placeholder{color:var(--text3)}
+.topbar-spacer{flex:1}
+.tb-btn{
+  padding:6px 14px;border:1px solid var(--border);border-radius:8px;
+  background:transparent;color:var(--text2);font-size:13px;cursor:pointer;transition:all .15s;white-space:nowrap
+}
+.tb-btn:hover{background:var(--surface2)}
+.tb-btn.accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tb-btn.accent:hover{filter:brightness(1.1)}
+.tb-btn.admin-btn{background:var(--accent-bg);color:var(--accent);border-color:var(--accent);font-weight:600}
+
+/* ── BODY LAYOUT ── */
+.app-body{display:flex;flex:1;overflow:hidden;height:calc(100vh - 56px)}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;background:var(--surface);
+  border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column
+}
+.sidebar-hdr{padding:16px 16px 8px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text3)}
+.topic-item{
+  display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;
+  border-left:3px solid transparent;transition:all .12s;position:relative
+}
+.topic-item:hover{background:var(--surface2)}
+.topic-item.active{background:var(--accent-bg);border-left-color:var(--accent)}
+.topic-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.topic-name{font-size:13px;color:var(--text2);flex:1;line-height:1.4}
+.topic-item.active .topic-name{color:var(--accent);font-weight:600}
+.topic-count{font-size:11px;color:var(--text3);background:var(--surface2);padding:1px 7px;border-radius:99px}
+.topic-actions{display:none;gap:4px}
+.topic-item:hover .topic-actions{display:flex}
+.topic-edit-btn{
+  width:22px;height:22px;border-radius:4px;border:none;background:var(--surface2);
+  cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;color:var(--text3)
+}
+.topic-edit-btn:hover{background:var(--border);color:var(--text)}
+.add-topic-btn{
+  margin:8px 12px 16px;padding:8px;border:1.5px dashed var(--border);border-radius:8px;
+  background:transparent;color:var(--text3);font-size:13px;cursor:pointer;text-align:center;transition:all .15s
+}
+.add-topic-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+
+/* ── MAIN PANEL ── */
+.main-panel{flex:1;overflow-y:auto;padding:28px 32px}
+.panel-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.panel-title{font-size:20px;font-weight:700}
+.panel-meta{font-size:13px;color:var(--text3);margin-top:2px}
+.qa-count-badge{
+  background:var(--accent-bg);color:var(--accent);
+  padding:3px 12px;border-radius:99px;font-size:12px;font-weight:600
+}
+
+/* Q&A accordion */
+.qa-list{display:flex;flex-direction:column;gap:10px}
+.qa-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;transition:box-shadow .15s
+}
+.qa-card:hover{box-shadow:var(--shadow)}
+.qa-q{
+  display:flex;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;
+  font-size:14.5px;font-weight:600;color:var(--text);line-height:1.5;user-select:none
+}
+.qa-q-icon{
+  width:24px;height:24px;border-radius:6px;background:var(--accent-bg);
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--accent);flex-shrink:0
+}
+.qa-q-text{flex:1}
+.qa-chevron{color:var(--text3);font-size:12px;transition:transform .2s;flex-shrink:0}
+.qa-card.open .qa-chevron{transform:rotate(180deg)}
+.qa-actions-row{display:flex;gap:6px;margin-left:auto}
+.qa-act-btn{
+  padding:3px 10px;border-radius:6px;border:1px solid var(--border);
+  background:transparent;font-size:12px;cursor:pointer;color:var(--text2);transition:all .12s
+}
+.qa-act-btn:hover{background:var(--surface2)}
+.qa-act-btn.del:hover{background:var(--red-bg);color:var(--red);border-color:var(--red)}
+.qa-a{
+  display:none;padding:0 20px 20px 56px;font-size:14px;color:var(--text2);
+  line-height:1.8;border-top:1px solid var(--border);padding-top:16px
+}
+.qa-card.open .qa-a{display:block}
+.qa-meta{font-size:11px;color:var(--text3);margin-top:12px}
+
+/* empty / loading states */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-state .emoji{font-size:48px;margin-bottom:16px}
+.empty-state h3{font-size:18px;font-weight:600;color:var(--text2);margin-bottom:8px}
+.loading-dots{display:flex;gap:6px;justify-content:center;padding:40px}
+.loading-dots span{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:dot 1.2s infinite}
+.loading-dots span:nth-child(2){animation-delay:.2s}
+.loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dot{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+
+/* search results */
+.search-result-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px 20px;margin-bottom:10px;cursor:pointer;transition:all .15s
+}
+.search-result-card:hover{box-shadow:var(--shadow);border-color:var(--accent)}
+.search-result-topic{font-size:11px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.search-result-q{font-size:14px;font-weight:600;margin-bottom:6px}
+.search-result-a{font-size:13px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+mark{background:rgba(26,107,200,0.15);color:var(--accent);border-radius:3px;padding:0 2px}
+
+/* ── MODALS ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;padding:20px
+}
+.modal-overlay.show{display:flex}
+.modal{
+  background:var(--surface);border-radius:18px;padding:36px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,0.2);position:relative
+}
+.modal.sm{max-width:460px}
+.modal.md{max-width:600px}
+.modal.lg{max-width:820px}
+.modal-close{
+  position:absolute;top:14px;right:16px;background:none;border:none;
+  font-size:20px;cursor:pointer;color:var(--text3);line-height:1
+}
+.modal-close:hover{color:var(--text)}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px}
+.modal textarea{
+  width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:14px;background:var(--surface);color:var(--text);outline:none;
+  resize:vertical;font-family:var(--font);line-height:1.6;transition:border-color .15s
+}
+.modal textarea:focus{border-color:var(--accent)}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap}
+.btn-save{
+  padding:10px 24px;border:none;border-radius:10px;font-size:14px;font-weight:600;
+  cursor:pointer;background:var(--accent);color:#fff;transition:all .15s
+}
+.btn-save:hover{filter:brightness(1.1)}
+.btn-save:disabled{opacity:.5;cursor:not-allowed}
+.btn-cancel-m{
+  padding:10px 18px;border:1px solid var(--border);border-radius:10px;
+  font-size:14px;background:transparent;color:var(--text2);cursor:pointer
+}
+.modal-err{color:var(--red);font-size:13px;margin-top:8px;display:none}
+.modal-suc{color:var(--teal);font-size:13px;margin-top:8px;display:none}
+.char-count{font-size:11px;color:var(--text3);text-align:right;margin-top:4px}
+.format-hint{font-size:11.5px;color:var(--text3);margin-top:6px;line-height:1.6;background:var(--surface2);padding:8px 12px;border-radius:8px}
+
+/* ── ADMIN PANEL ── */
+.admin-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px}
+.admin-tab{
+  padding:10px 20px;font-size:14px;font-weight:500;color:var(--text2);
+  cursor:pointer;border-bottom:2px solid transparent;transition:all .15s
+}
+.admin-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.admin-section{display:none}
+.admin-section.active{display:block}
+.admin-form{
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;margin-bottom:20px
+}
+.admin-form h4{font-size:14px;font-weight:600;margin-bottom:14px;color:var(--text2)}
+.form-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.form-row .inp-group{flex:1;min-width:160px;margin-bottom:0}
+.btn-add{
+  padding:10px 20px;border:none;border-radius:10px;font-size:14px;font-weight:600;
+  cursor:pointer;background:var(--accent);color:#fff;height:42px;white-space:nowrap;transition:all .15s
+}
+.btn-add:hover{filter:brightness(1.1)}
+.btn-add:disabled{opacity:.5;cursor:not-allowed}
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{
+  padding:9px 12px;background:var(--surface2);border:1px solid var(--border);
+  text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2)
+}
+.data-table td{padding:10px 12px;border:1px solid var(--border);vertical-align:middle}
+.data-table tr:nth-child(even) td{background:var(--surface2)}
+.role-sel{padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text);cursor:pointer}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:600}
+.badge-admin{background:var(--accent-bg);color:var(--accent)}
+.badge-editor{background:var(--teal-bg);color:var(--teal)}
+.badge-viewer{background:var(--surface2);color:var(--text3)}
+.badge-warn{background:var(--gold-bg);color:var(--gold)}
+.btn-del-sm{
+  padding:3px 10px;border:1px solid var(--red);border-radius:6px;
+  background:transparent;color:var(--red);font-size:12px;cursor:pointer;transition:all .12s
+}
+.btn-del-sm:hover{background:var(--red);color:#fff}
+.admin-msg{font-size:13px;padding:9px 14px;border-radius:8px;margin-top:10px;display:none}
+.admin-msg.ok{background:var(--teal-bg);color:var(--teal)}
+.admin-msg.err{background:var(--red-bg);color:var(--red)}
+.topic-color-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.color-swatch{
+  width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;
+  transition:transform .12s
+}
+.color-swatch:hover,.color-swatch.sel{transform:scale(1.2);border-color:#fff;box-shadow:0 0 0 2px var(--accent)}
+
+/* toast */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--text);color:var(--surface);padding:11px 22px;border-radius:99px;
+  font-size:14px;z-index:2000;transition:transform .25s;pointer-events:none;white-space:nowrap
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* answer formatting */
+.qa-answer p{margin-bottom:10px}
+.qa-answer ul,.qa-answer ol{margin-left:20px;margin-bottom:10px}
+.qa-answer li{margin-bottom:4px}
+.qa-answer strong{color:var(--text)}
+
+/* responsive */
+@media(max-width:700px){
+  .sidebar{position:fixed;left:-100%;top:56px;height:calc(100vh - 56px);z-index:100;transition:left .25s;box-shadow:var(--shadow)}
+  .sidebar.open{left:0}
+  .main-panel{padding:20px 16px}
+  .login-card,.force-card{padding:32px 22px}
+  .topbar-search{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN SCREEN ═══════════════════════════════════════════════════════ -->
+<div id="screen-login" class="screen active">
+  <div class="login-card">
+    <div class="q-logo">Q</div>
+    <div class="login-title">Qurious</div>
+    <div class="login-sub">Validus Knowledge Base<br>Sign in with your Validus email</div>
+    <div id="step-login">
+      <div class="inp-group">
+        <label>Email address</label>
+        <input type="email" id="l-email" placeholder="you@validusfintech.com" autocomplete="email">
+      </div>
+      <div class="inp-group">
+        <label>Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="l-pw" placeholder="Enter your password" autocomplete="current-password">
+          <button class="pw-toggle" onclick="togglePw('l-pw',this)">👁</button>
+        </div>
+      </div>
+      <div class="err" id="l-err"></div>
+      <button class="btn-primary" id="btn-login" onclick="doLogin()">Sign in →</button>
+      <div style="text-align:center;margin-top:12px">
+        <button class="link-btn" onclick="showForgot()">Forgot password?</button>
+      </div>
+    </div>
+    <div id="step-forgot" style="display:none">
+      <div style="text-align:left;margin-bottom:16px">
+        <div style="font-size:15px;font-weight:600;margin-bottom:3px">Reset password</div>
+        <div style="font-size:13px;color:var(--text3)">Enter your email and choose a new password.</div>
+      </div>
+      <div class="inp-group">
+        <label>Email</label>
+        <input type="email" id="f-email" placeholder="you@validusfintech.com">
+      </div>
+      <div class="inp-group">
+        <label>New password</label>
+        <div class="pw-wrap">
+          <input type="password" id="f-new" placeholder="Min 8 characters" oninput="chkStrength(this.value)">
+          <button class="pw-toggle" onclick="togglePw('f-new',this)">👁</button>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="s-fill"></div></div>
+        <div class="strength-lbl" id="s-lbl"></div>
+      </div>
+      <div class="inp-group">
+        <label>Confirm password</label>
+        <div class="pw-wrap">
+          <input type="password" id="f-confirm" placeholder="Repeat password">
+          <button class="pw-toggle" onclick="togglePw('f-confirm',this)">👁</button>
+        </div>
+      </div>
+      <div class="err" id="f-err"></div>
+      <div class="suc" id="f-suc"></div>
+      <button class="btn-primary" id="btn-reset" onclick="doReset()">Reset password</button>
+      <button class="btn-ghost" onclick="showLogin()">← Back to sign in</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FORCE CHANGE SCREEN ════════════════════════════════════════════════ -->
+<div id="screen-force" class="screen" style="align-items:center;justify-content:center;padding:24px;flex-direction:column">
+  <div class="force-card">
+    <div style="font-size:36px;margin-bottom:12px">🔑</div>
+    <div class="login-title" style="margin-bottom:4px">Set your password</div>
+    <div class="login-sub" style="margin-bottom:24px">First sign-in — please choose a personal password.</div>
+    <div class="inp-group">
+      <label>New password</label>
+      <div class="pw-wrap">
+        <input type="password" id="fc-new" placeholder="Min 8 characters" oninput="chkStrength(this.value,'fc')">
+        <button class="pw-toggle" onclick="togglePw('fc-new',this)">👁</button>
+      </div>
+      <div class="strength-bar"><div class="strength-fill" id="fc-fill"></div></div>
+      <div class="strength-lbl" id="fc-lbl"></div>
+    </div>
+    <div class="inp-group">
+      <label>Confirm password</label>
+      <div class="pw-wrap">
+        <input type="password" id="fc-confirm" placeholder="Repeat password">
+        <button class="pw-toggle" onclick="togglePw('fc-confirm',this)">👁</button>
+      </div>
+    </div>
+    <div class="err" id="fc-err"></div>
+    <button class="btn-primary" id="btn-fc" onclick="doForceChange()">Set password &amp; continue →</button>
+  </div>
+</div>
+
+<!-- ══ APP SCREEN ══════════════════════════════════════════════════════════ -->
+<div id="screen-app" class="screen">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-brand" onclick="closeSearch()">
+      <div class="topbar-logo-icon" style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#1A6BC8,#C07800);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;font-style:italic">Q</div>
+      <div>
+        <div class="topbar-brand-name">Qurious</div>
+        <div class="topbar-brand-sub">Validus Knowledge Base</div>
+      </div>
+    </div>
+    <div class="topbar-search">
+      <span style="color:var(--text3);font-size:14px">🔍</span>
+      <input type="text" id="search-input" placeholder="Search questions…" oninput="onSearch(this.value)" onkeydown="if(event.key==='Escape')closeSearch()">
+    </div>
+    <div class="topbar-spacer"></div>
+    <span style="font-size:13px;color:var(--text2)" id="tb-user"></span>
+    <button class="tb-btn" id="btn-add-qa" onclick="openAddQA()" style="display:none">+ Add Q&amp;A</button>
+    <button class="tb-btn admin-btn" id="btn-admin" onclick="openAdmin()" style="display:none">⚙ Admin</button>
+    <button class="tb-btn" onclick="toggleTheme()">☀</button>
+    <button class="tb-btn" onclick="doLogout()">Sign out</button>
+    <button class="tb-btn" id="btn-sidebar-toggle" onclick="toggleSidebar()" style="display:none">☰</button>
+  </div>
+
+  <div class="app-body">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-hdr">Topics</div>
+      <div id="topic-list"></div>
+      <button class="add-topic-btn" id="btn-add-topic" style="display:none" onclick="openAddTopic()">+ Add topic</button>
+    </div>
+
+    <!-- Main panel -->
+    <div class="main-panel" id="main-panel">
+      <!-- Loading -->
+      <div id="view-loading">
+        <div class="loading-dots"><span></span><span></span><span></span></div>
+      </div>
+      <!-- Search results -->
+      <div id="view-search" style="display:none">
+        <div class="panel-hdr">
+          <div>
+            <div class="panel-title" id="search-heading">Search results</div>
+            <div class="panel-meta" id="search-meta"></div>
+          </div>
+          <button class="tb-btn" onclick="closeSearch()">✕ Clear</button>
+        </div>
+        <div id="search-results"></div>
+      </div>
+      <!-- Q&A list -->
+      <div id="view-qas" style="display:none">
+        <div class="panel-hdr">
+          <div>
+            <div class="panel-title" id="topic-heading"></div>
+            <div class="panel-meta" id="topic-meta"></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="qa-count-badge" id="qa-count-badge"></span>
+            <button class="tb-btn" id="btn-edit-topic" style="display:none" onclick="openEditTopic()">✏ Rename</button>
+            <button class="tb-btn" id="btn-del-topic" style="display:none;color:var(--red)" onclick="doDeleteTopic()">🗑 Delete</button>
+          </div>
+        </div>
+        <div class="qa-list" id="qa-list"></div>
+      </div>
+      <!-- Welcome -->
+      <div id="view-welcome">
+        <div class="empty-state">
+          <div class="emoji">📚</div>
+          <h3>Welcome to Qurious</h3>
+          <p style="font-size:14px;line-height:1.7;max-width:380px;margin:0 auto">
+            Select a topic from the sidebar to browse Q&As,<br>or use the search bar to find answers instantly.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: ADD/EDIT Q&A ════════════════════════════════════════════════ -->
+<div id="modal-qa" class="modal-overlay">
+  <div class="modal md">
+    <button class="modal-close" onclick="closeModal('modal-qa')">✕</button>
+    <div class="modal-title" id="qa-modal-title">Add Q&amp;A</div>
+    <div class="inp-group">
+      <label>Topic</label>
+      <select id="qa-topic-sel"></select>
+    </div>
+    <div class="inp-group" style="margin-top:14px">
+      <label>Question</label>
+      <textarea id="qa-q-input" rows="3" placeholder="Enter the question…" oninput="countChars('qa-q-input','qa-q-count',200)"></textarea>
+      <div class="char-count" id="qa-q-count"></div>
+    </div>
+    <div class="inp-group" style="margin-top:14px">
+      <label>Answer</label>
+      <textarea id="qa-a-input" rows="7" placeholder="Enter the answer…" oninput="countChars('qa-a-input','qa-a-count',2000)"></textarea>
+      <div class="char-count" id="qa-a-count"></div>
+      <div class="format-hint">
+        <strong>Formatting:</strong> **bold** → <strong>bold</strong> &nbsp;|&nbsp; New line → paragraph break &nbsp;|&nbsp; - item → bullet point
+      </div>
+    </div>
+    <div class="modal-err" id="qa-err"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel-m" onclick="closeModal('modal-qa')">Cancel</button>
+      <button class="btn-save" id="btn-save-qa" onclick="saveQA()">Save Q&amp;A</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: ADD TOPIC ════════════════════════════════════════════════════ -->
+<div id="modal-topic" class="modal-overlay">
+  <div class="modal sm">
+    <button class="modal-close" onclick="closeModal('modal-topic')">✕</button>
+    <div class="modal-title" id="topic-modal-title">Add topic</div>
+    <div class="inp-group">
+      <label>Topic name</label>
+      <input type="text" id="topic-name-input" placeholder="e.g. Fund Structure & Setup" maxlength="80">
+    </div>
+    <div class="inp-group" style="margin-top:12px">
+      <label>Colour</label>
+      <div class="topic-color-row" id="color-swatches"></div>
+    </div>
+    <div class="modal-err" id="topic-err"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel-m" onclick="closeModal('modal-topic')">Cancel</button>
+      <button class="btn-save" id="btn-save-topic" onclick="saveTopic()">Save topic</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: ADMIN PANEL ═════════════════════════════════════════════════ -->
+<div id="modal-admin" class="modal-overlay">
+  <div class="modal lg">
+    <button class="modal-close" onclick="closeModal('modal-admin')">✕</button>
+    <div class="modal-title">Admin Panel</div>
+    <div class="admin-tabs">
+      <div class="admin-tab active" onclick="switchAdminTab('users',this)">Users</div>
+      <div class="admin-tab" onclick="switchAdminTab('topics',this)">Topics</div>
+    </div>
+
+    <!-- Users tab -->
+    <div class="admin-section active" id="admin-users">
+      <div class="admin-form">
+        <h4>Add new user</h4>
+        <div class="form-row">
+          <div class="inp-group"><label>Full name</label><input type="text" id="au-name" placeholder="Full name"></div>
+          <div class="inp-group"><label>Email</label><input type="email" id="au-email" placeholder="name@validusfintech.com"></div>
+          <div class="inp-group" style="max-width:130px"><label>Role</label>
+            <select id="au-role">
+              <option value="viewer">Viewer</option>
+              <option value="editor">Editor</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <button class="btn-add" id="btn-au" onclick="adminAddUser()">+ Add</button>
+        </div>
+        <div class="admin-msg" id="au-msg"></div>
+      </div>
+      <table class="data-table" id="users-table">
+        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last login</th><th></th></tr></thead>
+        <tbody id="users-tbody"><tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3)">Loading…</td></tr></tbody>
+      </table>
+      <div class="admin-msg" id="ur-msg"></div>
+    </div>
+
+    <!-- Topics tab -->
+    <div class="admin-section" id="admin-topics">
+      <div class="admin-form">
+        <h4>Manage topics</h4>
+        <p style="font-size:13px;color:var(--text3);margin-bottom:12px">Use the sidebar edit icons to rename or delete topics. Reorder by dragging (coming soon).</p>
+      </div>
+      <table class="data-table" id="topics-admin-table">
+        <thead><tr><th>#</th><th>Topic</th><th>Q&amp;As</th><th>Created by</th><th></th></tr></thead>
+        <tbody id="topics-admin-tbody"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3)">Loading…</td></tr></tbody>
+      </table>
+      <div class="admin-msg" id="ta-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══════════════════════════════════════════════════════════════ -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════════════════════════════
+const CFG = {
+  db_url:         'https://script.google.com/macros/s/AKfycbxj0-apgRAMbYqOdeFVp-URSaler56MEHmz588y6UaFnwO4or3TwkI-qAVkaD8ZW4gotw/exec',
+  allowed_domain: 'validusfintech.com',
+  admin_email:    'purna.b@validusfintech.com',
+};
+
+const SWATCH_COLORS = ['#1A6BC8','#0D8A65','#C07800','#B93030','#7B5800',
+                       '#7B2C8A','#1A7B6B','#B95C00','#2C6BB9','#6B7B00'];
+
+// ════════════════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════════════════
+const S = {
+  email: '', name: '', role: '',
+  topics: [], qas: {},          // qas keyed by topicId
+  currentTopicId: null,
+  editingQAId: null,
+  editingTopicId: null,
+  selectedColor: SWATCH_COLORS[0],
+  dark: false,
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// API
+// ════════════════════════════════════════════════════════════════════════════
+async function api(payload) {
+  const r = await fetch(CFG.db_url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload),
+  });
+  try { return await r.json(); }
+  catch(e) { return { ok: false, error: 'Server error' }; }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════════════════════════════════════
+async function doLogin() {
+  const email = val('l-email').toLowerCase(), pw = val('l-pw');
+  hide('l-err');
+  if (!email) return showErr('l-err','Enter your email.');
+  if (!email.endsWith('@'+CFG.allowed_domain)) return showErr('l-err','Only @'+CFG.allowed_domain+' addresses.');
+  if (!pw) return showErr('l-err','Enter your password.');
+
+  const btn = el('btn-login');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  const r = await api({ action:'login', email, password:pw });
+  btn.disabled = false; btn.textContent = 'Sign in →';
+
+  if (!r.ok) { showErr('l-err', r.error || 'Invalid email or password.'); el('l-pw').value = ''; return; }
+
+  S.email = email; S.name = r.name; S.role = r.role;
+
+  if (r.mustChangePassword) {
+    showScreen('screen-force');
+    el('fc-new').value = ''; el('fc-confirm').value = ''; hide('fc-err');
+  } else {
+    await enterApp();
+  }
+}
+
+async function doForceChange() {
+  const newPw = val('fc-new'), confirm = val('fc-confirm');
+  hide('fc-err');
+  if (!newPw || !confirm) return showErr('fc-err','Fill in both fields.');
+  if (newPw.length < 8) return showErr('fc-err','Password must be at least 8 characters.');
+  if (newPw !== confirm) return showErr('fc-err','Passwords do not match.');
+
+  const btn = el('btn-fc');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const r = await api({ action:'resetPassword', email:S.email, newPassword:newPw });
+  btn.disabled = false; btn.textContent = 'Set password & continue →';
+
+  if (!r.ok) return showErr('fc-err', r.error || 'Could not update password.');
+  await enterApp();
+}
+
+async function doReset() {
+  const email = val('f-email').toLowerCase(), newPw = val('f-new'), confirm = val('f-confirm');
+  hide('f-err'); hide('f-suc');
+  if (!email || !newPw || !confirm) return showErr('f-err','All fields required.');
+  if (!email.endsWith('@'+CFG.allowed_domain)) return showErr('f-err','Only @'+CFG.allowed_domain);
+  if (newPw.length < 8) return showErr('f-err','Min 8 characters.');
+  if (newPw !== confirm) return showErr('f-err','Passwords do not match.');
+
+  const btn = el('btn-reset');
+  btn.disabled = true; btn.textContent = 'Resetting…';
+  const r = await api({ action:'resetPassword', email, newPassword:newPw });
+  btn.disabled = false; btn.textContent = 'Reset password';
+
+  if (!r.ok) return showErr('f-err', r.error || 'Could not reset password.');
+  showSuc('f-suc','✓ Password reset. Signing you in…');
+  S.email = email;
+  setTimeout(() => { el('l-email').value = email; showLogin(); }, 1800);
+}
+
+function doLogout() {
+  S.email = ''; S.name = ''; S.role = '';
+  S.topics = []; S.qas = {}; S.currentTopicId = null;
+  showScreen('screen-login');
+  showLogin();
+  el('l-email').value = ''; el('l-pw').value = '';
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ENTER APP
+// ════════════════════════════════════════════════════════════════════════════
+async function enterApp() {
+  showScreen('screen-app');
+  el('tb-user').textContent = S.name || S.email;
+
+  // Show/hide controls by role
+  if (S.role === 'admin' || S.role === 'editor') {
+    el('btn-add-qa').style.display = 'inline-block';
+    el('btn-add-topic').style.display = 'block';
+  }
+  if (S.role === 'admin') {
+    el('btn-admin').style.display = 'inline-block';
+    el('btn-edit-topic').style.display = 'inline-block';
+    el('btn-del-topic').style.display = 'inline-block';
+  }
+
+  // Load topics
+  showView('view-loading');
+  const r = await api({ action:'getTopics' });
+  if (r.ok) {
+    S.topics = r.topics;
+    renderTopicList();
+  }
+  showView('view-welcome');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// TOPICS
+// ════════════════════════════════════════════════════════════════════════════
+function renderTopicList() {
+  const qaCounts = {};
+  Object.keys(S.qas).forEach(tid => { qaCounts[tid] = (S.qas[tid] || []).length; });
+
+  el('topic-list').innerHTML = S.topics.map(t => `
+    <div class="topic-item ${t.id === S.currentTopicId ? 'active' : ''}"
+         onclick="selectTopic('${t.id}')">
+      <div class="topic-dot" style="background:${t.color}"></div>
+      <div class="topic-name">${esc(t.title)}</div>
+      <span class="topic-count">${qaCounts[t.id] || 0}</span>
+      ${S.role === 'admin' ? `
+        <div class="topic-actions">
+          <button class="topic-edit-btn" onclick="event.stopPropagation();openEditTopic('${t.id}')" title="Rename">✏</button>
+          <button class="topic-edit-btn" onclick="event.stopPropagation();doDeleteTopic('${t.id}')" title="Delete">🗑</button>
+        </div>` : ''}
+    </div>`).join('');
+}
+
+async function selectTopic(id) {
+  S.currentTopicId = id;
+  closeSearch();
+  renderTopicList();
+
+  const topic = S.topics.find(t => t.id === id);
+  el('topic-heading').textContent = topic ? topic.title : '';
+
+  if (!S.qas[id]) {
+    showView('view-loading');
+    const r = await api({ action:'getQAs', topicId:id });
+    if (r.ok) S.qas[id] = r.qas;
+    else S.qas[id] = [];
+  }
+
+  renderQAs(id);
+}
+
+function renderQAs(topicId) {
+  const qas = S.qas[topicId] || [];
+  el('qa-count-badge').textContent = qas.length + ' Q&A' + (qas.length !== 1 ? 's' : '');
+  el('topic-meta').textContent = 'Showing all questions for this topic';
+
+  el('qa-list').innerHTML = qas.length === 0
+    ? `<div class="empty-state"><div class="emoji">🤔</div><h3>No Q&As yet</h3><p>Add the first question for this topic.</p></div>`
+    : qas.map(qa => `
+      <div class="qa-card" id="qa-${qa.id}">
+        <div class="qa-q" onclick="toggleQA('${qa.id}')">
+          <div class="qa-q-icon">Q</div>
+          <div class="qa-q-text">${esc(qa.question)}</div>
+          <div class="qa-actions-row" onclick="event.stopPropagation()">
+            ${(S.role === 'admin' || S.role === 'editor') ? `<button class="qa-act-btn" onclick="openEditQA('${qa.id}')">✏ Edit</button>` : ''}
+            ${S.role === 'admin' ? `<button class="qa-act-btn del" onclick="deleteQA('${qa.id}')">🗑</button>` : ''}
+          </div>
+          <div class="qa-chevron">▼</div>
+        </div>
+        <div class="qa-a">
+          <div class="qa-answer">${formatAnswer(qa.answer)}</div>
+          <div class="qa-meta">${qa.updatedAt ? 'Updated ' + qa.updatedAt + (qa.updatedBy ? ' by ' + qa.updatedBy : '') : (qa.createdAt ? 'Added ' + qa.createdAt : '')}</div>
+        </div>
+      </div>`).join('');
+
+  showView('view-qas');
+}
+
+function toggleQA(id) {
+  el('qa-' + id).classList.toggle('open');
+}
+
+function formatAnswer(text) {
+  if (!text) return '';
+  // Markdown-lite: **bold**, - bullets, line breaks
+  return text
+    .split('\n')
+    .filter(l => l !== undefined)
+    .map(line => {
+      line = line.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      if (line.trim().startsWith('- ')) return '<li>' + line.trim().slice(2) + '</li>';
+      return line;
+    })
+    .join('\n')
+    .replace(/(<li>.*<\/li>\n?)+/g, m => '<ul>' + m + '</ul>')
+    .split('\n')
+    .map(l => l.startsWith('<') ? l : (l.trim() ? '<p>' + l + '</p>' : ''))
+    .join('');
+}
+
+// ── ADD / EDIT TOPIC ────────────────────────────────────────────────────────
+function openAddTopic() {
+  S.editingTopicId = null;
+  el('topic-modal-title').textContent = 'Add topic';
+  el('topic-name-input').value = '';
+  S.selectedColor = SWATCH_COLORS[S.topics.length % SWATCH_COLORS.length];
+  renderSwatches();
+  hide('topic-err');
+  openModal('modal-topic');
+}
+
+function openEditTopic(id) {
+  const tid = id || S.currentTopicId;
+  if (!tid) return;
+  const topic = S.topics.find(t => t.id === tid);
+  if (!topic) return;
+  S.editingTopicId = tid;
+  el('topic-modal-title').textContent = 'Rename topic';
+  el('topic-name-input').value = topic.title;
+  S.selectedColor = topic.color || SWATCH_COLORS[0];
+  renderSwatches();
+  hide('topic-err');
+  openModal('modal-topic');
+}
+
+function renderSwatches() {
+  el('color-swatches').innerHTML = SWATCH_COLORS.map(c =>
+    `<div class="color-swatch ${c === S.selectedColor ? 'sel' : ''}"
+      style="background:${c}" onclick="selectColor('${c}')"></div>`
+  ).join('');
+}
+
+function selectColor(c) {
+  S.selectedColor = c;
+  renderSwatches();
+}
+
+async function saveTopic() {
+  const title = el('topic-name-input').value.trim();
+  if (!title) return showErr('topic-err','Topic name required.');
+  const btn = el('btn-save-topic');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  let r;
+  if (S.editingTopicId) {
+    r = await api({ action:'updateTopic', id:S.editingTopicId, title, color:S.selectedColor, role:S.role, requestedBy:S.email });
+    if (r.ok) { const t = S.topics.find(x => x.id === S.editingTopicId); if(t){t.title=title;t.color=S.selectedColor;} }
+  } else {
+    r = await api({ action:'addTopic', title, color:S.selectedColor, role:S.role, requestedBy:S.email });
+    if (r.ok) S.topics.push({ id:r.id, title, color:S.selectedColor });
+  }
+
+  btn.disabled = false; btn.textContent = 'Save topic';
+  if (!r.ok) return showErr('topic-err', r.error || 'Could not save topic.');
+  closeModal('modal-topic');
+  renderTopicList();
+  toast(S.editingTopicId ? 'Topic renamed.' : 'Topic added.');
+}
+
+async function doDeleteTopic(id) {
+  const tid = id || S.currentTopicId;
+  if (!tid) return;
+  const topic = S.topics.find(t => t.id === tid);
+  if (!topic) return;
+  if (!confirm('Delete "' + topic.title + '" and ALL its Q&As? This cannot be undone.')) return;
+
+  const r = await api({ action:'deleteTopic', id:tid, role:S.role, requestedBy:S.email });
+  if (!r.ok) { toast(r.error || 'Could not delete.'); return; }
+  S.topics = S.topics.filter(t => t.id !== tid);
+  delete S.qas[tid];
+  if (S.currentTopicId === tid) S.currentTopicId = null;
+  renderTopicList();
+  showView('view-welcome');
+  toast('Topic deleted.');
+}
+
+// ── ADD / EDIT Q&A ──────────────────────────────────────────────────────────
+function openAddQA() {
+  S.editingQAId = null;
+  el('qa-modal-title').textContent = 'Add Q&A';
+  el('qa-q-input').value = '';
+  el('qa-a-input').value = '';
+  hide('qa-err');
+  populateTopicSel(S.currentTopicId);
+  openModal('modal-qa');
+}
+
+function openEditQA(id) {
+  const topicQAs = S.qas[S.currentTopicId] || [];
+  const qa = topicQAs.find(q => q.id === id);
+  if (!qa) return;
+  S.editingQAId = id;
+  el('qa-modal-title').textContent = 'Edit Q&A';
+  el('qa-q-input').value = qa.question;
+  el('qa-a-input').value = qa.answer;
+  countChars('qa-q-input','qa-q-count',200);
+  countChars('qa-a-input','qa-a-count',2000);
+  hide('qa-err');
+  populateTopicSel(qa.topicId);
+  openModal('modal-qa');
+}
+
+function populateTopicSel(selectedId) {
+  el('qa-topic-sel').innerHTML = S.topics.map(t =>
+    `<option value="${t.id}" ${t.id === selectedId ? 'selected' : ''}>${esc(t.title)}</option>`
+  ).join('');
+}
+
+async function saveQA() {
+  const q = el('qa-q-input').value.trim();
+  const a = el('qa-a-input').value.trim();
+  const topicId = el('qa-topic-sel').value;
+  hide('qa-err');
+  if (!q) return showErr('qa-err','Question required.');
+  if (!a) return showErr('qa-err','Answer required.');
+  if (!topicId) return showErr('qa-err','Select a topic.');
+
+  const btn = el('btn-save-qa');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  let r;
+  if (S.editingQAId) {
+    r = await api({ action:'updateQA', id:S.editingQAId, question:q, answer:a, topicId, role:S.role, requestedBy:S.email });
+    if (r.ok) {
+      // Update in local cache
+      Object.keys(S.qas).forEach(tid => {
+        const idx = (S.qas[tid] || []).findIndex(x => x.id === S.editingQAId);
+        if (idx >= 0) {
+          S.qas[tid][idx] = { ...S.qas[tid][idx], question:q, answer:a, topicId, updatedAt:r.updatedAt, updatedBy:S.email };
+          // If moved to different topic, remove from old
+          if (tid !== topicId) {
+            S.qas[topicId] = S.qas[topicId] || [];
+            S.qas[topicId].push(S.qas[tid][idx]);
+            S.qas[tid].splice(idx, 1);
+          }
+        }
+      });
+    }
+  } else {
+    r = await api({ action:'addQA', question:q, answer:a, topicId, role:S.role, requestedBy:S.email });
+    if (r.ok) {
+      S.qas[topicId] = S.qas[topicId] || [];
+      S.qas[topicId].push({ id:r.id, topicId, question:q, answer:a, createdAt:r.createdAt, createdBy:S.email });
+    }
+  }
+
+  btn.disabled = false; btn.textContent = 'Save Q&A';
+  if (!r.ok) return showErr('qa-err', r.error || 'Could not save.');
+  closeModal('modal-qa');
+  if (S.currentTopicId) renderQAs(S.currentTopicId);
+  renderTopicList();
+  toast(S.editingQAId ? 'Q&A updated.' : 'Q&A added.');
+}
+
+async function deleteQA(id) {
+  if (!confirm('Delete this Q&A? This cannot be undone.')) return;
+  const r = await api({ action:'deleteQA', id, role:S.role, requestedBy:S.email });
+  if (!r.ok) { toast(r.error || 'Could not delete.'); return; }
+  if (S.currentTopicId) {
+    S.qas[S.currentTopicId] = (S.qas[S.currentTopicId] || []).filter(q => q.id !== id);
+    renderQAs(S.currentTopicId);
+  }
+  renderTopicList();
+  toast('Q&A deleted.');
+}
+
+// ── SEARCH ──────────────────────────────────────────────────────────────────
+let searchTimer;
+function onSearch(q) {
+  clearTimeout(searchTimer);
+  if (!q.trim()) { closeSearch(); return; }
+  searchTimer = setTimeout(() => runSearch(q.trim()), 300);
+}
+
+async function runSearch(q) {
+  showView('view-search');
+  el('search-heading').textContent = 'Results for "' + q + '"';
+  el('search-results').innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+
+  const r = await api({ action:'searchQAs', query:q });
+  if (!r.ok || !r.qas.length) {
+    el('search-meta').textContent = 'No results found.';
+    el('search-results').innerHTML = `<div class="empty-state"><div class="emoji">🔍</div><h3>No results</h3><p>Try different keywords.</p></div>`;
+    return;
+  }
+
+  el('search-meta').textContent = r.qas.length + ' result' + (r.qas.length !== 1 ? 's' : '');
+  const topicMap = {};
+  S.topics.forEach(t => { topicMap[t.id] = t; });
+
+  el('search-results').innerHTML = r.qas.map(qa => {
+    const topic = topicMap[qa.topicId];
+    const hi = s => s.replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'), m => '<mark>' + m + '</mark>');
+    return `<div class="search-result-card" onclick="jumpToQA('${qa.topicId}','${qa.id}')">
+      <div class="search-result-topic">${topic ? esc(topic.title) : ''}</div>
+      <div class="search-result-q">${hi(esc(qa.question))}</div>
+      <div class="search-result-a">${esc(qa.answer.slice(0,120))}${qa.answer.length > 120 ? '…' : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+async function jumpToQA(topicId, qaId) {
+  closeSearch();
+  await selectTopic(topicId);
+  // Open the accordion for the matched Q&A
+  setTimeout(() => {
+    const card = el('qa-' + qaId);
+    if (card) { card.classList.add('open'); card.scrollIntoView({ behavior:'smooth', block:'center' }); }
+  }, 200);
+}
+
+function closeSearch() {
+  el('search-input').value = '';
+  if (S.currentTopicId) renderQAs(S.currentTopicId);
+  else showView('view-welcome');
+}
+
+// ── ADMIN PANEL ─────────────────────────────────────────────────────────────
+function openAdmin() {
+  openModal('modal-admin');
+  loadAdminUsers();
+  loadAdminTopics();
+}
+
+function switchAdminTab(tab, btn) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  el('admin-' + tab).classList.add('active');
+}
+
+async function loadAdminUsers() {
+  const r = await api({ action:'listUsers', role:S.role, requestedBy:S.email });
+  if (!r.ok) { el('users-tbody').innerHTML = `<tr><td colspan="6" style="color:var(--red)">${r.error}</td></tr>`; return; }
+  el('users-tbody').innerHTML = r.users.map(u => `
+    <tr>
+      <td style="font-weight:600">${esc(u.name)}</td>
+      <td>${esc(u.email)}</td>
+      <td>
+        ${u.email === CFG.admin_email
+          ? `<span class="badge badge-admin">admin</span>`
+          : `<select class="role-sel" onchange="changeRole('${u.email}',this.value)">
+              <option ${u.role==='viewer'?'selected':''} value="viewer">viewer</option>
+              <option ${u.role==='editor'?'selected':''} value="editor">editor</option>
+              <option ${u.role==='admin'?'selected':''} value="admin">admin</option>
+            </select>`}
+      </td>
+      <td>${u.mustChange ? '<span class="badge badge-warn">⚠ Must change pw</span>' : '<span style="color:var(--teal);font-size:12px">✓ Active</span>'}</td>
+      <td style="color:var(--text3);font-size:12px">${u.last_login || 'Never'}</td>
+      <td>${u.email === CFG.admin_email ? '' : `<button class="btn-del-sm" onclick="adminRemoveUser('${u.email}')">Remove</button>`}</td>
+    </tr>`).join('');
+}
+
+async function adminAddUser() {
+  const name = val('au-name'), email = val('au-email').toLowerCase(), role = el('au-role').value;
+  hide('au-msg');
+  if (!name) return adminMsg('au-msg','Name required.',false);
+  if (!email.endsWith('@'+CFG.allowed_domain)) return adminMsg('au-msg','Must be @'+CFG.allowed_domain,false);
+
+  const btn = el('btn-au'); btn.disabled=true; btn.textContent='Adding…';
+  const r = await api({ action:'addUser', name, email, role2:role, role:S.role, requestedBy:S.email });
+  btn.disabled=false; btn.textContent='+ Add';
+
+  if (!r.ok) return adminMsg('au-msg', r.error || 'Failed.',false);
+  adminMsg('au-msg','✓ '+email+' added. Default password: '+r.defaultPassword,true);
+  el('au-name').value=''; el('au-email').value='';
+  loadAdminUsers();
+}
+
+async function adminRemoveUser(email) {
+  if (!confirm('Remove '+email+'? They lose access immediately.')) return;
+  const r = await api({ action:'removeUser', email, role:S.role, requestedBy:S.email });
+  adminMsg('ur-msg', r.ok ? '✓ '+email+' removed.' : (r.error||'Failed.'), r.ok);
+  if (r.ok) loadAdminUsers();
+}
+
+async function changeRole(email, newRole) {
+  const r = await api({ action:'updateRole', email, newRole, role:S.role, requestedBy:S.email });
+  toast(r.ok ? 'Role updated.' : (r.error || 'Could not update role.'));
+}
+
+async function loadAdminTopics() {
+  const r = await api({ action:'getTopics' });
+  if (!r.ok) return;
+  const qaCounts = {};
+  Object.keys(S.qas).forEach(tid => { qaCounts[tid] = (S.qas[tid]||[]).length; });
+
+  el('topics-admin-tbody').innerHTML = r.topics.map((t, i) => `
+    <tr>
+      <td style="color:var(--text3)">${i+1}</td>
+      <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${t.color};margin-right:8px"></span>${esc(t.title)}</td>
+      <td>${qaCounts[t.id] || '—'}</td>
+      <td style="color:var(--text3);font-size:12px">${t.createdBy || ''}</td>
+      <td>
+        <button class="qa-act-btn" onclick="openEditTopic('${t.id}');closeModal('modal-admin')">✏</button>
+        <button class="qa-act-btn del" style="margin-left:4px" onclick="doDeleteTopic('${t.id}');closeModal('modal-admin')">🗑</button>
+      </td>
+    </tr>`).join('');
+}
+
+function adminMsg(id, msg, ok) {
+  const e = el(id);
+  e.textContent = msg;
+  e.className = 'admin-msg ' + (ok ? 'ok' : 'err');
+  e.style.display = 'block';
+  setTimeout(() => { e.style.display = 'none'; }, 4000);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// UI HELPERS
+// ════════════════════════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  el(id).classList.add('active');
+}
+
+function showView(id) {
+  ['view-loading','view-search','view-qas','view-welcome'].forEach(v => {
+    const e = el(v); if(e) e.style.display = 'none';
+  });
+  const target = el(id); if(target) target.style.display = 'block';
+}
+
+function openModal(id)  { el(id).classList.add('show'); }
+function closeModal(id) { el(id).classList.remove('show'); }
+function showLogin()    { el('step-login').style.display='block'; el('step-forgot').style.display='none'; }
+function showForgot()   { el('step-login').style.display='none'; el('step-forgot').style.display='block'; const e=val('l-email'); if(e) el('f-email').value=e; }
+
+function toggleSidebar() { el('sidebar').classList.toggle('open'); }
+function toggleTheme() {
+  S.dark = !S.dark;
+  document.documentElement.setAttribute('data-theme', S.dark ? 'dark' : 'light');
+}
+
+function togglePw(id, btn) {
+  const inp = el(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+function chkStrength(pw, prefix) {
+  let s = 0;
+  if (pw.length >= 8) s++;
+  if (pw.length >= 12) s++;
+  if (/[A-Z]/.test(pw)) s++;
+  if (/[0-9]/.test(pw)) s++;
+  if (/[^A-Za-z0-9]/.test(pw)) s++;
+  const pct=['0%','20%','40%','70%','90%','100%'], col=['','#B93030','#C07800','#C07800','#0D8A65','#0D8A65'], lbl=['','Weak','Fair','Good','Strong','Very strong'];
+  const fill=el((prefix||'s')+'-fill'), lab=el((prefix||'s')+'-lbl');
+  if(fill){fill.style.width=pct[s];fill.style.background=col[s];}
+  if(lab){lab.textContent=pw.length>0?lbl[s]:'';lab.style.color=col[s];}
+}
+
+function countChars(inputId, countId, max) {
+  const n = el(inputId).value.length;
+  el(countId).textContent = n + ' / ' + max + ' characters';
+  el(countId).style.color = n > max * 0.9 ? 'var(--red)' : 'var(--text3)';
+}
+
+function showErr(id, msg) { const e=el(id); e.textContent=msg; e.style.display='block'; }
+function showSuc(id, msg) { const e=el(id); e.textContent=msg; e.style.display='block'; }
+function hide(id)         { const e=el(id); if(e) e.style.display='none'; }
+function el(id)           { return document.getElementById(id); }
+function val(id)          { return (el(id) ? el(id).value : '').trim(); }
+function esc(s)           { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+let toastTimer;
+function toast(msg) {
+  const t = el('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── KEYBOARD SHORTCUTS ───────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+    closeSearch();
+  }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    el('search-input').focus();
+  }
+});
+
+el('l-email').addEventListener('keydown', e => { if(e.key==='Enter') el('l-pw').focus(); });
+el('l-pw').addEventListener('keydown',    e => { if(e.key==='Enter') doLogin(); });
+el('fc-new').addEventListener('keydown',  e => { if(e.key==='Enter') el('fc-confirm').focus(); });
+el('fc-confirm').addEventListener('keydown', e => { if(e.key==='Enter') doForceChange(); });
+</script>
+</body>
+</html>
