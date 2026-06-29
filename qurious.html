@@ -596,7 +596,7 @@ mark{background:rgba(26,107,200,0.15);color:var(--accent);border-radius:3px;padd
 // CONFIG
 // ════════════════════════════════════════════════════════════════════════════
 const CFG = {
-  db_url:         'https://script.google.com/macros/s/AKfycbxj0-apgRAMbYqOdeFVp-URSaler56MEHmz588y6UaFnwO4or3TwkI-qAVkaD8ZW4gotw/exec',
+  db_url:         'PASTE_QURIOUSDB_APPS_SCRIPT_URL_HERE',
   allowed_domain: 'validusfintech.com',
   admin_email:    'purna.b@validusfintech.com',
 };
@@ -609,7 +609,7 @@ const SWATCH_COLORS = ['#1A6BC8','#0D8A65','#C07800','#B93030','#7B5800',
 // ════════════════════════════════════════════════════════════════════════════
 const S = {
   email: '', name: '', role: '',
-  topics: [], qas: {},          // qas keyed by topicId
+  topics: [], qas: {}, topicCounts: {},  // qas and counts keyed by topicId
   currentTopicId: null,
   editingQAId: null,
   editingTopicId: null,
@@ -723,6 +723,14 @@ async function enterApp() {
   const r = await api({ action:'getTopics' });
   if (r.ok) {
     S.topics = r.topics;
+    // Fetch Q&A counts for all topics up front so sidebar shows correct numbers
+    const qr = await api({ action:'getQAs' });  // no topicId = all Q&As
+    if (qr.ok) {
+      S.topicCounts = {};
+      (qr.qas || []).forEach(qa => {
+        S.topicCounts[qa.topicId] = (S.topicCounts[qa.topicId] || 0) + 1;
+      });
+    }
     renderTopicList();
   }
   showView('view-welcome');
@@ -732,8 +740,11 @@ async function enterApp() {
 // TOPICS
 // ════════════════════════════════════════════════════════════════════════════
 function renderTopicList() {
-  const qaCounts = {};
-  Object.keys(S.qas).forEach(tid => { qaCounts[tid] = (S.qas[tid] || []).length; });
+  // Prefer pre-loaded topicCounts; fall back to locally cached S.qas lengths
+  const qaCounts = Object.assign({}, S.topicCounts || {});
+  Object.keys(S.qas).forEach(tid => {
+    qaCounts[tid] = (S.qas[tid] || []).length;
+  });
 
   el('topic-list').innerHTML = S.topics.map(t => `
     <div class="topic-item ${t.id === S.currentTopicId ? 'active' : ''}"
@@ -959,6 +970,7 @@ async function saveQA() {
     if (r.ok) {
       S.qas[topicId] = S.qas[topicId] || [];
       S.qas[topicId].push({ id:r.id, topicId, question:q, answer:a, createdAt:r.createdAt, createdBy:S.email });
+      if (!S.editingQAId) S.topicCounts[topicId] = (S.topicCounts[topicId] || 0) + 1;
     }
   }
 
@@ -976,6 +988,7 @@ async function deleteQA(id) {
   if (!r.ok) { toast(r.error || 'Could not delete.'); return; }
   if (S.currentTopicId) {
     S.qas[S.currentTopicId] = (S.qas[S.currentTopicId] || []).filter(q => q.id !== id);
+    S.topicCounts[S.currentTopicId] = Math.max(0, (S.topicCounts[S.currentTopicId] || 1) - 1);
     renderQAs(S.currentTopicId);
   }
   renderTopicList();
@@ -996,11 +1009,23 @@ async function runSearch(q) {
   el('search-results').innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
 
   const r = await api({ action:'searchQAs', query:q });
-  if (!r.ok || !r.qas.length) {
+  if (!r.ok) {
     el('search-meta').textContent = 'No results found.';
-    el('search-results').innerHTML = `<div class="empty-state"><div class="emoji">🔍</div><h3>No results</h3><p>Try different keywords.</p></div>`;
+    el('search-results').innerHTML = '<div class="empty-state"><div class="emoji">🔍</div><h3>No results</h3><p>Try different keywords.</p></div>';
     return;
   }
+  // Whole-word filter on client — only keep results where the query word
+  // appears as a whole word (surrounded by non-alphanumeric chars or boundaries)
+  const wordRe = new RegExp('(?<![a-zA-Z0-9])' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '(?![a-zA-Z0-9])', 'i');
+  const filtered = (r.qas || []).filter(qa =>
+    wordRe.test(qa.question) || wordRe.test(qa.answer)
+  );
+  if (!filtered.length) {
+    el('search-meta').textContent = 'No results for whole-word "' + q + '".';
+    el('search-results').innerHTML = '<div class="empty-state"><div class="emoji">🔍</div><h3>No results</h3><p>Try different keywords.</p></div>';
+    return;
+  }
+  r.qas = filtered;
 
   el('search-meta').textContent = r.qas.length + ' result' + (r.qas.length !== 1 ? 's' : '');
   const topicMap = {};
