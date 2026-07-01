@@ -435,6 +435,7 @@ mark{background:rgba(26,107,200,0.15);color:var(--accent);border-radius:3px;padd
     <span style="font-size:13px;color:var(--text2)" id="tb-user"></span>
     <button class="tb-btn" id="btn-add-qa" onclick="openAddQA()" style="display:none">+ Add Q&amp;A</button>
     <button class="tb-btn admin-btn" id="btn-admin" onclick="openAdmin()" style="display:none">⚙ Admin</button>
+    <button class="tb-btn" onclick="openChangePw()">🔑 Password</button>
     <button class="tb-btn" onclick="toggleTheme()">☀</button>
     <button class="tb-btn" onclick="doLogout()">Sign out</button>
     <button class="tb-btn" id="btn-sidebar-toggle" onclick="toggleSidebar()" style="display:none">☰</button>
@@ -619,6 +620,45 @@ mark{background:rgba(26,107,200,0.15);color:var(--accent);border-radius:3px;padd
   </div>
 </div>
 
+<!-- ══ CHANGE PASSWORD MODAL ══════════════════════════════════════════════ -->
+<div id="modal-cpw" class="modal-overlay">
+  <div class="modal sm">
+    <button class="modal-close" onclick="closeModal('modal-cpw')">✕</button>
+    <div class="modal-title">Change password</div>
+    <div class="modal-scroll">
+      <div class="inp-group">
+        <label>Current password</label>
+        <div class="pw-wrap">
+          <input type="password" id="cpw-old" placeholder="Current password">
+          <button class="pw-toggle" onclick="togglePw('cpw-old',this)">👁</button>
+        </div>
+      </div>
+      <div class="inp-group">
+        <label>New password</label>
+        <div class="pw-wrap">
+          <input type="password" id="cpw-new" placeholder="Min 8 characters" oninput="chkStrength(this.value,'cpw')">
+          <button class="pw-toggle" onclick="togglePw('cpw-new',this)">👁</button>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="cpw-fill"></div></div>
+        <div class="strength-lbl" id="cpw-lbl"></div>
+      </div>
+      <div class="inp-group">
+        <label>Confirm new password</label>
+        <div class="pw-wrap">
+          <input type="password" id="cpw-confirm" placeholder="Repeat new password">
+          <button class="pw-toggle" onclick="togglePw('cpw-confirm',this)">👁</button>
+        </div>
+      </div>
+      <div class="err" id="cpw-err"></div>
+      <div class="suc" id="cpw-suc"></div>
+    </div>
+    <div class="modal-actions" style="flex-shrink:0">
+      <button class="btn-cancel-m" onclick="closeModal('modal-cpw')">Cancel</button>
+      <button class="btn-save" id="btn-cpw" onclick="doChangePw()">Update password</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ TOAST ══════════════════════════════════════════════════════════════ -->
 <div class="toast" id="toast"></div>
 
@@ -627,7 +667,7 @@ mark{background:rgba(26,107,200,0.15);color:var(--accent);border-radius:3px;padd
 // CONFIG
 // ════════════════════════════════════════════════════════════════════════════
 const CFG = {
-  db_url:         'https://script.google.com/macros/s/AKfycbxMr2Qn0oloPFbWBQa-XZZJXzP3erzFGXMfcBx4CvZY__3W43k7R-hOzb3MnNH8ul-aAg/exec',
+  db_url:         'https://script.google.com/macros/s/AKfycby1wFAL_7NVoVstInD9lTVTS-BjQfMp1Ui2y1VMA_z1_mMknQH9LUD25Ktyme-BhbUzFg/exec',
   allowed_domain: 'validusfintech.com',
   admin_email:    'purna.b@validusfintech.com',
 };
@@ -721,6 +761,49 @@ async function doReset() {
   showSuc('f-suc','✓ Password reset. Signing you in…');
   S.email = email;
   setTimeout(() => { el('l-email').value = email; showLogin(); }, 1800);
+}
+
+function openChangePw() {
+  ['cpw-old','cpw-new','cpw-confirm'].forEach(id => { const e = el(id); if(e) e.value=''; });
+  hide('cpw-err'); hide('cpw-suc');
+  const fill = el('cpw-fill'); if(fill){ fill.style.width='0%'; fill.style.background=''; }
+  const lbl  = el('cpw-lbl');  if(lbl)  lbl.textContent = '';
+  openModal('modal-cpw');
+}
+
+async function doChangePw() {
+  const oldPw   = val('cpw-old');
+  const newPw   = val('cpw-new');
+  const confirm = val('cpw-confirm');
+  hide('cpw-err'); hide('cpw-suc');
+
+  if (!oldPw)            return showErr('cpw-err','Enter your current password.');
+  if (!newPw)            return showErr('cpw-err','Enter a new password.');
+  if (newPw.length < 8)  return showErr('cpw-err','Password must be at least 8 characters.');
+  if (newPw !== confirm)  return showErr('cpw-err','Passwords do not match.');
+  if (oldPw === newPw)   return showErr('cpw-err','New password must be different from the current one.');
+
+  const btn = el('btn-cpw');
+  btn.disabled = true; btn.textContent = 'Updating…';
+
+  let r;
+  try {
+    r = await api({ action:'changePassword', email:S.email, oldPassword:oldPw, newPassword:newPw });
+  } catch(e) {
+    r = { ok: false, error: 'Could not reach server.' };
+  }
+
+  btn.disabled = false; btn.textContent = 'Update password';
+
+  if (!r.ok) {
+    showErr('cpw-err', r.error || 'Could not update password.');
+    el('cpw-old').value = '';
+    return;
+  }
+
+  showSuc('cpw-suc','✓ Password updated.');
+  ['cpw-old','cpw-new','cpw-confirm'].forEach(id => { const e = el(id); if(e) e.value=''; });
+  setTimeout(() => closeModal('modal-cpw'), 1800);
 }
 
 function doLogout() {
@@ -1240,7 +1323,18 @@ function toggleSidebar() { el('sidebar').classList.toggle('open'); }
 function toggleTheme() {
   S.dark = !S.dark;
   document.documentElement.setAttribute('data-theme', S.dark ? 'dark' : 'light');
+  try { localStorage.setItem('qurious_theme', S.dark ? 'dark' : 'light'); } catch(e) {}
 }
+
+// Restore saved theme preference on load
+(function(){
+  try {
+    if (localStorage.getItem('qurious_theme') === 'dark') {
+      S.dark = true;
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  } catch(e) {}
+})();
 
 function togglePw(id, btn) {
   const inp = el(id);
