@@ -288,6 +288,8 @@ mark{background:rgba(26,107,200,0.15);color:var(--accent);border-radius:3px;padd
 .badge-editor{background:var(--teal-bg);color:var(--teal)}
 .badge-viewer{background:var(--surface2);color:var(--text3)}
 .badge-warn{background:var(--gold-bg);color:var(--gold)}
+.badge-internal{background:var(--red-bg);color:var(--red);font-size:10px;padding:1px 7px;border-radius:99px;font-weight:600}
+.badge-client{background:var(--teal-bg);color:var(--teal);font-size:10px;padding:1px 7px;border-radius:99px;font-weight:600}
 .btn-del-sm{
   padding:3px 10px;border:1px solid var(--red);border-radius:6px;
   background:transparent;color:var(--red);font-size:12px;cursor:pointer;transition:all .12s
@@ -603,7 +605,7 @@ mark{background:rgba(26,107,200,0.15);color:var(--accent);border-radius:3px;padd
 // CONFIG
 // ════════════════════════════════════════════════════════════════════════════
 const CFG = {
-  db_url:         'https://script.google.com/macros/s/AKfycbxj0-apgRAMbYqOdeFVp-URSaler56MEHmz588y6UaFnwO4or3TwkI-qAVkaD8ZW4gotw/exec',
+  db_url:         'https://script.google.com/macros/s/AKfycbwDwmKtDZsvOFD-Rln5JhRRrmdO3Q8FJpIgy8ylOZgF-Jlnd5QHXCiLq4MCLZvUKkRA0g/exec',
   allowed_domain: 'validusfintech.com',
   admin_email:    'purna.b@validusfintech.com',
 };
@@ -777,7 +779,9 @@ async function selectTopic(id) {
 
   if (!S.qas[id]) {
     showView('view-loading');
-    const r = await api({ action:'getQAs', topicId:id });
+    // Editors and admins see all; viewers see client-facing only
+    const visFilter = (S.role === 'admin' || S.role === 'editor') ? {} : { visibility: 'client' };
+    const r = await api({ action:'getQAs', topicId:id, ...visFilter });
     if (r.ok) S.qas[id] = r.qas;
     else S.qas[id] = [];
   }
@@ -798,6 +802,7 @@ function renderQAs(topicId) {
           <div class="qa-q-icon">Q</div>
           <div class="qa-q-text">${esc(qa.question)}</div>
           <div class="qa-actions-row" onclick="event.stopPropagation()">
+            ${(S.role === 'admin' || S.role === 'editor') && qa.visibility === 'internal' ? '<span class="badge-internal">internal</span>' : ''}
             ${(S.role === 'admin' || S.role === 'editor') ? `<button class="qa-act-btn" onclick="openEditQA('${qa.id}')">✏ Edit</button>` : ''}
             ${S.role === 'admin' ? `<button class="qa-act-btn del" onclick="deleteQA('${qa.id}')">🗑</button>` : ''}
           </div>
@@ -916,6 +921,8 @@ function openAddQA() {
   el('qa-modal-title').textContent = 'Add Q&A';
   el('qa-q-input').value = '';
   el('qa-a-input').value = '';
+  el('qa-vis-sel').value = 'client';
+  el('qa-cat-sel').value = 'AIF';
   hide('qa-err');
   populateTopicSel(S.currentTopicId);
   openModal('modal-qa');
@@ -929,6 +936,8 @@ function openEditQA(id) {
   el('qa-modal-title').textContent = 'Edit Q&A';
   el('qa-q-input').value = qa.question;
   el('qa-a-input').value = qa.answer;
+  el('qa-vis-sel').value = qa.visibility || 'client';
+  el('qa-cat-sel').value = qa.category   || 'AIF';
   countChars('qa-q-input','qa-q-count',200);
   countChars('qa-a-input','qa-a-count',2000);
   hide('qa-err');
@@ -956,13 +965,18 @@ async function saveQA() {
 
   let r;
   if (S.editingQAId) {
-    r = await api({ action:'updateQA', id:S.editingQAId, question:q, answer:a, topicId, role:S.role, requestedBy:S.email });
+    r = await api({ action:'updateQA', id:S.editingQAId, question:q, answer:a, topicId,
+      visibility: el('qa-vis-sel').value,
+      category:   el('qa-cat-sel').value,
+      role:S.role, requestedBy:S.email });
     if (r.ok) {
       // Update in local cache
       Object.keys(S.qas).forEach(tid => {
         const idx = (S.qas[tid] || []).findIndex(x => x.id === S.editingQAId);
         if (idx >= 0) {
-          S.qas[tid][idx] = { ...S.qas[tid][idx], question:q, answer:a, topicId, updatedAt:r.updatedAt, updatedBy:S.email };
+          S.qas[tid][idx] = { ...S.qas[tid][idx], question:q, answer:a, topicId,
+            visibility:el('qa-vis-sel').value, category:el('qa-cat-sel').value,
+            updatedAt:r.updatedAt, updatedBy:S.email };
           // If moved to different topic, remove from old
           if (tid !== topicId) {
             S.qas[topicId] = S.qas[topicId] || [];
@@ -973,10 +987,15 @@ async function saveQA() {
       });
     }
   } else {
-    r = await api({ action:'addQA', question:q, answer:a, topicId, role:S.role, requestedBy:S.email });
+    r = await api({ action:'addQA', question:q, answer:a, topicId,
+      visibility: el('qa-vis-sel').value,
+      category:   el('qa-cat-sel').value,
+      role:S.role, requestedBy:S.email });
     if (r.ok) {
       S.qas[topicId] = S.qas[topicId] || [];
-      S.qas[topicId].push({ id:r.id, topicId, question:q, answer:a, createdAt:r.createdAt, createdBy:S.email });
+      S.qas[topicId].push({ id:r.id, topicId, question:q, answer:a,
+        visibility:el('qa-vis-sel').value, category:el('qa-cat-sel').value,
+        createdAt:r.createdAt, createdBy:S.email });
       if (!S.editingQAId) S.topicCounts[topicId] = (S.topicCounts[topicId] || 0) + 1;
     }
   }
