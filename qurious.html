@@ -499,25 +499,47 @@ mark{background:rgba(26,107,200,0.15);color:var(--accent);border-radius:3px;padd
   <div class="modal md">
     <button class="modal-close" onclick="closeModal('modal-qa')">✕</button>
     <div class="modal-title" id="qa-modal-title">Add Q&amp;A</div>
-    <div class="inp-group">
-      <label>Topic</label>
-      <select id="qa-topic-sel"></select>
-    </div>
-    <div class="inp-group" style="margin-top:14px">
-      <label>Question</label>
-      <textarea id="qa-q-input" rows="2" placeholder="Enter the question…" oninput="countChars('qa-q-input','qa-q-count',200)"></textarea>
-      <div class="char-count" id="qa-q-count"></div>
-    </div>
-    <div class="inp-group" style="margin-top:14px">
-      <label>Answer</label>
-      <textarea id="qa-a-input" rows="5" placeholder="Enter the answer…" oninput="countChars('qa-a-input','qa-a-count',2000)"></textarea>
-      <div class="char-count" id="qa-a-count"></div>
-      <div class="format-hint">
-        <strong>Formatting:</strong> **bold** → <strong>bold</strong> &nbsp;|&nbsp; New line → paragraph break &nbsp;|&nbsp; - item → bullet point
+    <div class="modal-scroll">
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div class="inp-group" style="flex:2;min-width:180px">
+          <label>Topic</label>
+          <select id="qa-topic-sel"></select>
+        </div>
+        <div class="inp-group" style="flex:1;min-width:130px">
+          <label>Category</label>
+          <select id="qa-cat-sel">
+            <option value="AIF">AIF</option>
+            <option value="MF RTA">MF RTA</option>
+            <option value="Platform">Platform</option>
+            <option value="Compliance">Compliance</option>
+            <option value="General">General</option>
+          </select>
+        </div>
+        <div class="inp-group" style="flex:1;min-width:130px">
+          <label>Visibility</label>
+          <select id="qa-vis-sel">
+            <option value="client">Client facing</option>
+            <option value="internal">Internal only</option>
+          </select>
+        </div>
       </div>
+      <div class="inp-group" style="margin-top:10px">
+        <label>Question</label>
+        <textarea id="qa-q-input" rows="2" placeholder="Enter the question…" oninput="countChars('qa-q-input','qa-q-count',200)"></textarea>
+        <div class="char-count" id="qa-q-count"></div>
+      </div>
+      <div class="inp-group" style="margin-top:12px">
+        <label>Answer</label>
+        <textarea id="qa-a-input" rows="5" placeholder="Enter the answer…" oninput="countChars('qa-a-input','qa-a-count',2000)"></textarea>
+        <div class="char-count" id="qa-a-count"></div>
+        <div class="format-hint">
+          <strong>Formatting:</strong> **bold** → <strong>bold</strong> &nbsp;|&nbsp;
+          New line → paragraph break &nbsp;|&nbsp; - item → bullet point
+        </div>
+      </div>
+      <div class="modal-err" id="qa-err"></div>
     </div>
-    <div class="modal-err" id="qa-err"></div>
-    <div class="modal-actions">
+    <div class="modal-actions" style="flex-shrink:0">
       <button class="btn-cancel-m" onclick="closeModal('modal-qa')">Cancel</button>
       <button class="btn-save" id="btn-save-qa" onclick="saveQA()">Save Q&amp;A</button>
     </div>
