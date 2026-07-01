@@ -605,7 +605,7 @@ mark{background:rgba(26,107,200,0.15);color:var(--accent);border-radius:3px;padd
 // CONFIG
 // ════════════════════════════════════════════════════════════════════════════
 const CFG = {
-  db_url:         'https://script.google.com/macros/s/AKfycbxMr2Qn0oloPFbWBQa-XZZJXzP3erzFGXMfcBx4CvZY__3W43k7R-hOzb3MnNH8ul-aAg/exec',
+  db_url:         'PASTE_QURIOUSDB_APPS_SCRIPT_URL_HERE',
   allowed_domain: 'validusfintech.com',
   admin_email:    'purna.b@validusfintech.com',
 };
@@ -921,8 +921,8 @@ function openAddQA() {
   el('qa-modal-title').textContent = 'Add Q&A';
   el('qa-q-input').value = '';
   el('qa-a-input').value = '';
-  el('qa-vis-sel').value = 'client';
-  el('qa-cat-sel').value = 'AIF';
+  elSet('qa-vis-sel','client');
+  elSet('qa-cat-sel','AIF');
   hide('qa-err');
   populateTopicSel(S.currentTopicId);
   openModal('modal-qa');
@@ -936,8 +936,8 @@ function openEditQA(id) {
   el('qa-modal-title').textContent = 'Edit Q&A';
   el('qa-q-input').value = qa.question;
   el('qa-a-input').value = qa.answer;
-  el('qa-vis-sel').value = qa.visibility || 'client';
-  el('qa-cat-sel').value = qa.category   || 'AIF';
+  elSet('qa-vis-sel', qa.visibility || 'client');
+  elSet('qa-cat-sel', qa.category || 'AIF');
   countChars('qa-q-input','qa-q-count',200);
   countChars('qa-a-input','qa-a-count',2000);
   hide('qa-err');
@@ -966,8 +966,8 @@ async function saveQA() {
   let r;
   if (S.editingQAId) {
     r = await api({ action:'updateQA', id:S.editingQAId, question:q, answer:a, topicId,
-      visibility: el('qa-vis-sel').value,
-      category:   el('qa-cat-sel').value,
+      visibility: elVal('qa-vis-sel','client'),
+      category:   elVal('qa-cat-sel','AIF'),
       role:S.role, requestedBy:S.email });
     if (r.ok) {
       // Update in local cache
@@ -975,7 +975,7 @@ async function saveQA() {
         const idx = (S.qas[tid] || []).findIndex(x => x.id === S.editingQAId);
         if (idx >= 0) {
           S.qas[tid][idx] = { ...S.qas[tid][idx], question:q, answer:a, topicId,
-            visibility:el('qa-vis-sel').value, category:el('qa-cat-sel').value,
+            visibility:elVal('qa-vis-sel','client'), category:elVal('qa-cat-sel','AIF'),
             updatedAt:r.updatedAt, updatedBy:S.email };
           // If moved to different topic, remove from old
           if (tid !== topicId) {
@@ -988,13 +988,13 @@ async function saveQA() {
     }
   } else {
     r = await api({ action:'addQA', question:q, answer:a, topicId,
-      visibility: el('qa-vis-sel').value,
-      category:   el('qa-cat-sel').value,
+      visibility: elVal('qa-vis-sel','client'),
+      category:   elVal('qa-cat-sel','AIF'),
       role:S.role, requestedBy:S.email });
     if (r.ok) {
       S.qas[topicId] = S.qas[topicId] || [];
       S.qas[topicId].push({ id:r.id, topicId, question:q, answer:a,
-        visibility:el('qa-vis-sel').value, category:el('qa-cat-sel').value,
+        visibility:elVal('qa-vis-sel','client'), category:elVal('qa-cat-sel','AIF'),
         createdAt:r.createdAt, createdBy:S.email });
       if (!S.editingQAId) S.topicCounts[topicId] = (S.topicCounts[topicId] || 0) + 1;
     }
@@ -1249,6 +1249,8 @@ function showErr(id, msg) { const e=el(id); e.textContent=msg; e.style.display='
 function showSuc(id, msg) { const e=el(id); e.textContent=msg; e.style.display='block'; }
 function hide(id)         { const e=el(id); if(e) e.style.display='none'; }
 function el(id)           { return document.getElementById(id); }
+function elVal(id, fallback) { const e = document.getElementById(id); return e ? e.value : (fallback || ''); }
+function elSet(id, val)      { const e = document.getElementById(id); if (e) e.value = val; }
 function val(id)          { return (el(id) ? el(id).value : '').trim(); }
 function esc(s)           { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
