@@ -334,6 +334,7 @@ mark{background:rgba(26,107,200,0.15);color:var(--accent);border-radius:3px;padd
   document.addEventListener('keydown', function(e){
     if (
       (e.ctrlKey && e.key === 'u') ||
+      (e.ctrlKey && e.key === 'a') ||
       (e.ctrlKey && e.shiftKey && ['i','I','j','J','c','C'].includes(e.key)) ||
       (e.ctrlKey && e.key === 's') ||
       e.key === 'F12'
@@ -567,7 +568,7 @@ mark{background:rgba(26,107,200,0.15);color:var(--accent);border-radius:3px;padd
     <div class="modal-title" id="topic-modal-title">Add topic</div>
     <div class="inp-group">
       <label>Topic name</label>
-      <input type="text" id="topic-name-input" placeholder="e.g. Fund Structure & Setup" maxlength="80">
+      <input type="text" id="topic-name-input" placeholder="e.g. Fund Structure & Setup" maxlength="80" onkeydown="if(event.key==='Enter'){event.preventDefault();saveTopic();}">
     </div>
     <div class="inp-group" style="margin-top:12px">
       <label>Colour</label>
@@ -701,6 +702,22 @@ const S = {
   dark: false,
 };
 
+// Restore session from sessionStorage (survives F5, clears on tab close)
+(function(){
+  try {
+    const saved = sessionStorage.getItem('qurious_session');
+    if (saved) {
+      const s = JSON.parse(saved);
+      if (s.email && s.role) {
+        S.email = s.email; S.name = s.name || ''; S.role = s.role;
+        window.addEventListener('DOMContentLoaded', function() {
+          enterApp();
+        });
+      }
+    }
+  } catch(e) {}
+})();
+
 // ════════════════════════════════════════════════════════════════════════════
 // API
 // ════════════════════════════════════════════════════════════════════════════
@@ -733,6 +750,13 @@ async function doLogin() {
 
   S.email = email; S.name = r.name; S.role = r.role;
 
+  // Persist session so F5 refresh doesn't log out
+  try {
+    sessionStorage.setItem('qurious_session', JSON.stringify({
+      email: S.email, name: S.name, role: S.role,
+    }));
+  } catch(e) {}
+
   if (r.mustChangePassword) {
     showScreen('screen-force');
     el('fc-new').value = ''; el('fc-confirm').value = ''; hide('fc-err');
@@ -754,6 +778,11 @@ async function doForceChange() {
   btn.disabled = false; btn.textContent = 'Set password & continue →';
 
   if (!r.ok) return showErr('fc-err', r.error || 'Could not update password.');
+  try {
+    sessionStorage.setItem('qurious_session', JSON.stringify({
+      email: S.email, name: S.name, role: S.role,
+    }));
+  } catch(e) {}
   await enterApp();
 }
 
@@ -820,6 +849,7 @@ async function doChangePw() {
 }
 
 function doLogout() {
+  try { sessionStorage.removeItem('qurious_session'); } catch(e) {}
   S.email = ''; S.name = ''; S.role = '';
   S.topics = []; S.qas = {}; S.currentTopicId = null;
   showScreen('screen-login');
@@ -1011,9 +1041,24 @@ async function saveTopic() {
 
   btn.disabled = false; btn.textContent = 'Save topic';
   if (!r.ok) return showErr('topic-err', r.error || 'Could not save topic.');
-  closeModal('modal-topic');
-  renderTopicList();
-  toast(S.editingTopicId ? 'Topic renamed.' : 'Topic added.');
+
+  if (S.editingTopicId) {
+    // Rename: stay in modal so user can make more edits — show inline confirmation
+    const errEl = el('topic-err');
+    errEl.textContent = '✓ Topic renamed successfully.';
+    errEl.style.color = 'var(--teal)';
+    errEl.style.display = 'block';
+    setTimeout(() => {
+      errEl.style.display = 'none';
+      errEl.style.color = '';
+    }, 2000);
+    renderTopicList();
+  } else {
+    // New topic: close modal and show toast
+    closeModal('modal-topic');
+    renderTopicList();
+    toast('Topic added.');
+  }
 }
 
 async function doDeleteTopic(id) {
