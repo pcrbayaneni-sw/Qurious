@@ -328,6 +328,19 @@ mark{background:rgba(26,107,200,0.15);color:var(--accent);border-radius:3px;padd
   .topbar-search{display:none}
 }
 </style>
+<script>
+(function(){
+  document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  document.addEventListener('keydown', function(e){
+    if (
+      (e.ctrlKey && e.key === 'u') ||
+      (e.ctrlKey && e.shiftKey && ['i','I','j','J','c','C'].includes(e.key)) ||
+      (e.ctrlKey && e.key === 's') ||
+      e.key === 'F12'
+    ) { e.preventDefault(); e.stopPropagation(); return false; }
+  });
+})();
+</script>
 </head>
 <body>
 
@@ -667,7 +680,7 @@ mark{background:rgba(26,107,200,0.15);color:var(--accent);border-radius:3px;padd
 // CONFIG
 // ════════════════════════════════════════════════════════════════════════════
 const CFG = {
-  db_url:         'https://script.google.com/macros/s/AKfycby1wFAL_7NVoVstInD9lTVTS-BjQfMp1Ui2y1VMA_z1_mMknQH9LUD25Ktyme-BhbUzFg/exec',
+  db_url:         'PASTE_QURIOUSDB_APPS_SCRIPT_URL_HERE',
   allowed_domain: 'validusfintech.com',
   admin_email:    'purna.b@validusfintech.com',
 };
