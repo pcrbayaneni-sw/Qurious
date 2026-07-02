@@ -335,23 +335,53 @@ mark{background:rgba(26,107,200,0.15);color:var(--accent);border-radius:3px;padd
 </style>
 <script>
 (function(){
-  document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  var ALLOWED = ['INPUT','TEXTAREA'];
+  function isInput(){ return ALLOWED.includes(document.activeElement && document.activeElement.tagName); }
+  function isInputTarget(e){ return ALLOWED.includes(e.target && e.target.tagName); }
+
+  document.addEventListener('contextmenu', function(e){ e.preventDefault(); return false; });
+
   document.addEventListener('keydown', function(e){
+    var k = (e.key || '').toLowerCase();
     if (
-      (e.ctrlKey && e.key === 'u') ||
-      (e.ctrlKey && e.key === 'a') ||
-      (e.ctrlKey && e.key === 'c') ||
-      (e.ctrlKey && e.key === 'C') ||
-      (e.ctrlKey && e.shiftKey && ['i','I','j','J','c','C'].includes(e.key)) ||
-      (e.ctrlKey && e.key === 's') ||
-      e.key === 'F12'
+      (e.ctrlKey && k === 'u') ||
+      (e.ctrlKey && k === 's') ||
+      (e.ctrlKey && !isInput() && k === 'a') ||
+      (e.ctrlKey && !isInput() && k === 'c') ||
+      (e.ctrlKey && !isInput() && k === 'x') ||
+      (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(k)) ||
+      k === 'f12'
     ) { e.preventDefault(); e.stopPropagation(); return false; }
-  });
+  }, true);
+
   document.addEventListener('selectstart', function(e){
-    if (!['INPUT','TEXTAREA'].includes(e.target.tagName)) e.preventDefault();
-  });
+    if (!isInputTarget(e)){ e.preventDefault(); return false; }
+  }, true);
+
   document.addEventListener('copy', function(e){
-    if (!['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) e.preventDefault();
+    if (!isInput()){
+      e.preventDefault();
+      if (e.clipboardData){ e.clipboardData.setData('text/plain',''); }
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        try { navigator.clipboard.writeText(''); } catch(err){}
+      }
+      return false;
+    }
+  }, true);
+
+  document.addEventListener('cut', function(e){
+    if (!isInput()){ e.preventDefault(); return false; }
+  }, true);
+
+  document.addEventListener('mouseup', function(e){
+    if (!isInputTarget(e)){
+      var sel = window.getSelection ? window.getSelection() : document.selection;
+      if (sel){ try { sel.removeAllRanges ? sel.removeAllRanges() : sel.empty(); } catch(err){} }
+    }
+  });
+
+  document.addEventListener('dragstart', function(e){
+    if (!isInputTarget(e)){ e.preventDefault(); return false; }
   });
 })();
 </script>
