@@ -742,6 +742,7 @@ const S = {
   editingQAId: null,
   editingTopicId: null,
   selectedColor: SWATCH_COLORS[0],
+  visFilter: 'all',
   dark: false,
 };
 
@@ -891,8 +892,17 @@ async function doChangePw() {
   setTimeout(() => closeModal('modal-cpw'), 1800);
 }
 
+function toggleUserMenu() {
+  el('user-dropdown').classList.toggle('open');
+}
+function closeUserMenu() {
+  el('user-dropdown').classList.remove('open');
+}
+
 function doLogout() {
   try { sessionStorage.removeItem('qurious_session'); } catch(e) {}
+  el('user-menu-wrap').style.display = 'none';
+  el('user-dropdown').classList.remove('open');
   S.email = ''; S.name = ''; S.role = '';
   S.topics = []; S.qas = {}; S.currentTopicId = null;
   showScreen('screen-login');
@@ -905,15 +915,17 @@ function doLogout() {
 // ════════════════════════════════════════════════════════════════════════════
 async function enterApp() {
   showScreen('screen-app');
-  el('tb-user').textContent = S.name || S.email;
+  el('tb-user').textContent = S.name || S.email.split('@')[0];
+  el('tb-user-email').textContent = S.email;
+  el('user-menu-wrap').style.display = 'block';
 
   // Show/hide controls by role
   if (S.role === 'admin' || S.role === 'editor') {
-    el('btn-add-qa').style.display = 'inline-block';
+    el('dd-add-qa').style.display = 'flex';
     el('btn-add-topic').style.display = 'block';
   }
   if (S.role === 'admin') {
-    el('btn-admin').style.display = 'inline-block';
+    el('dd-admin').style.display = 'flex';
     el('btn-edit-topic').style.display = 'inline-block';
     el('btn-del-topic').style.display = 'inline-block';
   }
@@ -981,12 +993,25 @@ async function selectTopic(id) {
 }
 
 function renderQAs(topicId) {
-  const qas = S.qas[topicId] || [];
-  el('qa-count-badge').textContent = qas.length + ' Q&A' + (qas.length !== 1 ? 's' : '');
-  el('topic-meta').textContent = 'Showing all questions for this topic';
+  const allQAs = S.qas[topicId] || [];
+
+  // Apply visibility filter (editors/admins only — viewers always see client)
+  const canFilterVis = (S.role === 'admin' || S.role === 'editor');
+  const visFilter = el('vis-filter');
+  if (visFilter) visFilter.style.display = canFilterVis && allQAs.length > 0 ? 'flex' : 'none';
+
+  const qas = allQAs.filter(qa => {
+    if (S.visFilter === 'client')   return qa.visibility === 'client' || !qa.visibility;
+    if (S.visFilter === 'internal') return qa.visibility === 'internal';
+    return true; // 'all'
+  });
+
+  el('qa-count-badge').textContent = qas.length + ' Q&A' + (qas.length !== 1 ? 's' : '') +
+    (allQAs.length !== qas.length ? ' of ' + allQAs.length : '');
+  el('topic-meta').textContent = '';
 
   el('qa-list').innerHTML = qas.length === 0
-    ? `<div class="empty-state"><div class="emoji">🤔</div><h3>No Q&As yet</h3><p>Add the first question for this topic.</p></div>`
+    ? `<div class="empty-state"><div class="emoji">🤔</div><h3>No Q&As yet</h3><p>${allQAs.length > 0 ? 'None match the current filter.' : 'Add the first question for this topic.'}</p></div>`
     : qas.map(qa => `
       <div class="qa-card" id="qa-${qa.id}">
         <div class="qa-q" onclick="toggleQA('${qa.id}')">
@@ -1001,15 +1026,31 @@ function renderQAs(topicId) {
         </div>
         <div class="qa-a">
           <div class="qa-answer">${formatAnswer(qa.answer)}</div>
-          <div class="qa-meta">${qa.updatedAt ? 'Updated ' + qa.updatedAt + (qa.updatedBy ? ' by ' + qa.updatedBy : '') : (qa.createdAt ? 'Added ' + qa.createdAt : '')}</div>
         </div>
       </div>`).join('');
 
   showView('view-qas');
 }
 
+function setVisFilter(mode) {
+  S.visFilter = mode;
+  // Update button styles
+  ['all','client','internal'].forEach(m => {
+    const btn = el('vf-' + m);
+    if (!btn) return;
+    btn.className = 'vis-filter-btn' +
+      (m === mode ? (m === 'internal' ? ' int-active' : ' active') : '');
+  });
+  if (S.currentTopicId) renderQAs(S.currentTopicId);
+}
+
 function toggleQA(id) {
-  el('qa-' + id).classList.toggle('open');
+  const card = el('qa-' + id);
+  const isOpen = card.classList.contains('open');
+  // Close all open cards first (accordion)
+  document.querySelectorAll('.qa-card.open').forEach(function(c) { c.classList.remove('open'); });
+  // If it wasn't open, open it now
+  if (!isOpen) card.classList.add('open');
 }
 
 function formatAnswer(text) {
@@ -1479,10 +1520,16 @@ function toast(msg) {
 }
 
 // ── KEYBOARD SHORTCUTS ───────────────────────────────────────────────────────
+document.addEventListener('click', function(e) {
+  const wrap = el('user-menu-wrap');
+  if (wrap && !wrap.contains(e.target)) closeUserMenu();
+});
+
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
     closeSearch();
+    closeUserMenu();
   }
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
     e.preventDefault();
