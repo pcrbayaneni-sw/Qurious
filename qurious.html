@@ -893,16 +893,16 @@ async function doChangePw() {
 }
 
 function toggleUserMenu() {
-  el('user-dropdown').classList.toggle('open');
+  const d = el('user-dropdown'); if(d) d.classList.toggle('open');
 }
 function closeUserMenu() {
-  el('user-dropdown').classList.remove('open');
+  const d = el('user-dropdown'); if(d) d.classList.remove('open');
 }
 
 function doLogout() {
   try { sessionStorage.removeItem('qurious_session'); } catch(e) {}
-  el('user-menu-wrap').style.display = 'none';
-  el('user-dropdown').classList.remove('open');
+  const _uw = el('user-menu-wrap'); if(_uw) _uw.style.display = 'none';
+  const _ud = el('user-dropdown'); if(_ud) _ud.classList.remove('open');
   S.email = ''; S.name = ''; S.role = '';
   S.topics = []; S.qas = {}; S.currentTopicId = null;
   showScreen('screen-login');
@@ -915,19 +915,23 @@ function doLogout() {
 // ════════════════════════════════════════════════════════════════════════════
 async function enterApp() {
   showScreen('screen-app');
-  el('tb-user').textContent = S.name || S.email.split('@')[0];
-  el('tb-user-email').textContent = S.email;
-  el('user-menu-wrap').style.display = 'block';
+  const _s = function(id, v, p) { const e = el(id); if(e) e[p||'textContent'] = v; };
+  const _d = function(id, v) { const e = el(id); if(e) e.style.display = v; };
+  _s('tb-user', S.name || S.email.split('@')[0]);
+  _s('tb-user-email', S.email);
+  _d('user-menu-wrap', 'block');
 
   // Show/hide controls by role
   if (S.role === 'admin' || S.role === 'editor') {
-    el('dd-add-qa').style.display = 'flex';
-    el('btn-add-topic').style.display = 'block';
+    _d('dd-add-qa', 'flex');
+    _d('btn-add-qa', 'inline-block');  // fallback if old topbar
+    _d('btn-add-topic', 'block');
   }
   if (S.role === 'admin') {
-    el('dd-admin').style.display = 'flex';
-    el('btn-edit-topic').style.display = 'inline-block';
-    el('btn-del-topic').style.display = 'inline-block';
+    _d('dd-admin', 'flex');
+    _d('btn-admin', 'inline-block');   // fallback if old topbar
+    _d('btn-edit-topic', 'inline-block');
+    _d('btn-del-topic', 'inline-block');
   }
 
   // Load topics
@@ -1523,6 +1527,7 @@ function toast(msg) {
 document.addEventListener('click', function(e) {
   const wrap = el('user-menu-wrap');
   if (wrap && !wrap.contains(e.target)) closeUserMenu();
+  // Also handle old-style btn-admin / btn-add-qa if present
 });
 
 document.addEventListener('keydown', e => {
